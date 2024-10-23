@@ -1,8 +1,7 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+// styles
 import styles from "./Map.module.css";
 
-import { useEffect, useState } from "react";
-import { useCities } from "../contexts/CitiesContext";
+// react-leaflet
 import {
   MapContainer,
   TileLayer,
@@ -11,6 +10,15 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
+
+import { useEffect, useState } from "react";
+import { useGeolocation } from "../hooks/useGeoLocation";
+
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCities } from "../contexts/CitiesContext";
+
+// components
+import Button from "./Button";
 
 function ChangePosition({ position }) {
   const map = useMap();
@@ -32,8 +40,13 @@ function DetectClick() {
 export default function Map() {
   const { cities } = useCities();
   const [mapPosition, setMapPosition] = useState([40, 0]);
-
   const [searchParams] = useSearchParams();
+  const {
+    isLoading: isLoadingPosition,
+    position: geolocationPosition,
+    getPosition,
+  } = useGeolocation();
+
   const mapLat = searchParams.get("lat");
   const mapLng = searchParams.get("lng");
 
@@ -43,8 +56,20 @@ export default function Map() {
     }
   }, [mapLat, mapLng]);
 
+  useEffect(() => {
+    if (geolocationPosition) {
+      setMapPosition([geolocationPosition.lat, geolocationPosition.lng]);
+    }
+  }, [geolocationPosition]);
+
   return (
     <div className={styles.mapContainer}>
+      {!geolocationPosition && (
+        <Button type="position" onClick={getPosition}>
+          {isLoadingPosition ? "Loading..." : "Use your position"}
+        </Button>
+      )}
+
       <MapContainer center={mapPosition} zoom={6} className={styles.map}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
