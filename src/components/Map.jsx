@@ -14,11 +14,12 @@ import {
 import { useEffect, useState } from "react";
 import { useGeolocation } from "../hooks/useGeoLocation";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useCities } from "../contexts/CitiesContext";
 
 // components
 import Button from "./Button";
+import { useUrlPosition } from "../hooks/useUrlPosition";
 
 function ChangePosition({ position }) {
   const map = useMap();
@@ -40,21 +41,19 @@ function DetectClick() {
 export default function Map() {
   const { cities } = useCities();
   const [mapPosition, setMapPosition] = useState([40, 0]);
-  const [searchParams] = useSearchParams();
   const {
     isLoading: isLoadingPosition,
     position: geolocationPosition,
     getPosition,
   } = useGeolocation();
 
-  const mapLat = searchParams.get("lat");
-  const mapLng = searchParams.get("lng");
+  const [lat, lng] = useUrlPosition();
 
   useEffect(() => {
-    if (mapLat && mapLng) {
-      setMapPosition([mapLat, mapLng]);
+    if (lat && lng) {
+      setMapPosition([lat, lng]);
     }
-  }, [mapLat, mapLng]);
+  }, [lat, lng]);
 
   useEffect(() => {
     if (geolocationPosition) {
